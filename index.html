@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='UTF-8'>
+  <title>Journal UI</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <!--link rel=stylesheet href='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css'-->
+  <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js'></script>
+  <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <!--script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js'></script-->
+  <style>
+    #text-entry
+    {
+      margin: 0px 0px 0px 25px;
+    }
+  </style>
+</head>
+<body>
+  <!--div class='container'>
+    <div class='row'>
+      <div class='col-sm-12'-->
+	<h1>Journal Time</h1>
+      <!--/div>
+    </div>
+    <div class='row'>
+      <div class='col-sm-5'></div>
+      <div class='col-sm-2'-->
+	<h4 class='text-center'>Title</h4><input id='title' placeholder='(optional)'>
+      <!--/div>
+      <div class='col-sm-5'></div>
+    </div>
+    <div class='row'>
+      <div class='col-sm-5'></div>
+      <div class='col-sm-2'-->
+	<h4 class='text-center'>Date</h4><input id='date-picker' type='date'>
+      <!--/div>
+      <div class='col-sm-5'></div>
+    </div>
+  </div>
+  <div class='container'>
+    <div class='row'>
+      <div class='col-sm-12'-->
+	<h4 class='text-center'>Journal Entry</h4>
+	<hr>
+      <!--/div>
+    </div>
+  </div-->
+  <div id='entry-canvas'><br>
+    <!--div class='row'>
+      <div class='col-sm-12'-->
+	<div id='text-entry-area'>
+	  <!--div id='move-icon-row'><!--img id='move-icon' class='drag' src='img/move-icon.png' width='25px' height='25px'></div-->
+	  <textarea id='text-entry' class='drag' autofocus rows=20 cols=80 onfocus='selectedTextEntry()' onblur='deselectedTextEntry(event)'></textarea>
+	</div>
+      <!--/div>
+    </div-->
+  </div>
+
+  <script>
+    var currentDate = new Date();
+    var currentYear = currentDate.getFullYear();
+    var currentMonth = currentDate.getMonth() + 1 + '';
+    currentMonth = currentMonth.length == 1 ? '0' + currentMonth : currentMonth;
+    var currentDate = currentDate.getDate();
+    currentDate = currentDate.length == 1 ? '0' + currentDate : currentDate;
+    var timeStr = currentYear + '-' + currentMonth + '-' + currentDate;;
+    document.getElementById('date-picker').value = timeStr;
+  </script>
+  <script>
+    // TODO: Fix bug where window is too small and it puts image up at the top...
+    // TODO: Maybe just set it up so that the move icon appears whenever mouse is (over text-entry-area OR focus is on text-box)
+    var draggingIcon = false; // TODO: Figure out how to pass this around or do something less hacky
+    function selectedTextEntry ()
+    {
+      var textEntryArea = document.getElementById('text-entry-area');
+      var moveIcon = document.createElement('IMG');
+      moveIcon.id = 'move-icon';
+      moveIcon.class = 'drag';
+      moveIcon.src = 'img/move-icon.png';
+      moveIcon.width = '25';
+      moveIcon.height = '25';
+      moveIcon.onmousedown = function () { draggingIcon = true; };
+      moveIcon.onmouseup = function () { draggingIcon = false; };
+      moveIcon.onmouseleave = function () { if (!draggingIcon) removeMoveIcon(); };
+      boundRectTextEntry = document.getElementById('text-entry').getBoundingClientRect();
+      leftMoveIcon = boundRectTextEntry['left'] - 25;
+      topMoveIcon = boundRectTextEntry['top'] - 25;
+      moveIcon.style = 'position:absolute; top: '+topMoveIcon+'px; left: '+leftMoveIcon+'px;';
+      textEntryArea.appendChild(moveIcon);
+      var canvas = $('#entry-canvas');
+      $('#move-icon').draggable({
+        containment: canvas,
+        drag: function(event, ui) {
+          $('#text-entry').offset({top: ui.offset.top+25, left: ui.offset.left+25});
+          //console.log(ui.offset);
+        }
+      });
+    }
+
+    function removeMoveIcon ()
+    {
+      var textEntryArea = document.getElementById('text-entry-area');
+      var moveIcon = document.getElementById('move-icon');
+      textEntryArea.removeChild(moveIcon);
+    }
+
+    function deselectedTextEntry (e)
+    {
+      console.log('deselected');
+      setTimeout(
+        function ()
+        {
+          if (!draggingIcon)
+          {
+            removeMoveIcon();
+          }
+        },
+        10);
+    }
+  </script>
+  <!--script>
+    var canvas = $('#entry-canvas');
+    $('#move-icon').draggable({
+      containment: canvas,
+      drag: function(event, ui) {
+        $('#text-entry').offset({top: ui.offset.top+25, left: ui.offset.left+25});
+        console.log(ui.offset);
+      }
+    });
+  </script-->
+  <!--script>
+    function addTextEntry()
+    {
+      var entryCanvas = document.getElementById('entry-canvas');
+      var entryCanvasBoundingRect = entryCanvas.getBoundingClientRect();
+      var newTextEntry = document.createElement('textarea');
+      newTextEntry.id = 'text-entry';
+      newTextEntry.style.position = 'absolute';
+      newTextEntry.rows = 15;
+      newTextEntry.style.left = 10;
+      newTextEntry.style.top = 10;
+      newTextEntry.style.bottom = 100;//entryCanvasBoundingRect['left'];
+      var newMoveIcon = document.createElement('img');
+      entryCanvas.appendChild(newTextEntry);
+    }
+    addTextEntry();
+  </script>
+  <script>
+    function draggingTextEntry (e)
+    {
+      // Get coordinates of icon and text entry
+      var moveIcon = document.getElementById('move-icon');
+      var textEntry = document.getElementById('text-entry');
+      var moveIconBoundingRect = moveIcon.getBoundingClientRect();
+      var textEntryBoundingRect = textEntry.getBoundingClientRect();
+      
+      // Move the icon and text entry to where the mouse is
+      moveIcon.style.left = e.screenX;
+      moveIcon.style.top = e.screenY;
+    }
+  </script-->
+  <!-- script src="js/ -->
+</body>
+</html>
